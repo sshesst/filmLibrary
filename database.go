@@ -7,6 +7,17 @@ import (
 	"os"
 )
 
+// Вспомогательная функция для получения пула соединений с базой данных
+func GetPool() (*pgxpool.Pool, error) {
+	configPath := "config"
+	pool, err := NewDBPool(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return pool, nil
+}
+
 func NewDBPool(configPath string) (*pgxpool.Pool, error) {
 	configFile := configPath + string(os.PathSeparator) + "server.toml"
 	config, err := config.ReadConfig(configFile)

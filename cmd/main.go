@@ -2,8 +2,11 @@ package main
 
 import (
 	database "filmLibrary"
+	"filmLibrary/internal/routes"
 	"fmt"
+	"github.com/gorilla/handlers"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -20,4 +23,14 @@ func main() {
 	}
 
 	fmt.Println("Success!")
+
+	routes.SetupRoutes()
+
+	port := ":8080"
+	fmt.Printf("Server is running on port %s\n", port)
+	http.ListenAndServe(port, handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
+	)(http.DefaultServeMux))
 }

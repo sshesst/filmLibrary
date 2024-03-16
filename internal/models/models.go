@@ -1,25 +1,27 @@
 package models
 
-import (
-	"time"
-)
-
 // Actor модель для таблицы актёров
 type Actor struct {
-	ID        uint      `json:"id"`
-	Name      string    `json:"name"`
-	Gender    string    `json:"gender"`
-	Birthdate time.Time `json:"birthdate"`
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Gender    string `json:"gender"`
+	Birthdate string `json:"birthdate"`
 }
 
 // Movie модель для таблицы фильмов
 type Movie struct {
-	ID          uint      `json:"id"`
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	ReleaseDate time.Time `json:"releaseDate"`
-	Rating      float64   `json:"rating" check:"(rating >= 0) AND (rating <= 10)"`
-	Actors      []Actor   `json:"actors"`
+	ID          uint    `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	ReleaseDate string  `json:"releaseDate"`
+	Rating      float64 `json:"rating"`
+	Actors      []Actor `json:"actors"`
+}
+
+// связь Many-to-Many для Movie и Actor
+type MovieActor struct {
+	MovieID uint `json:"movieId" pg:",pk"`
+	ActorID uint `json:"actorId" pg:",pk"`
 }
 
 // User модель для таблицы пользователей
@@ -29,9 +31,3 @@ type Movie struct {
 //	Password string `json:"-"`
 //	Role     string `json:"role"`
 //}
-
-// связь Many-to-Many для Movie и Actor
-type MovieActor struct {
-	MovieID uint `json:"movieId"`
-	ActorID uint `json:"actorId"`
-}
