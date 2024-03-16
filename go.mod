@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
+	github.com/lib/pq v1.10.2
 	github.com/pelletier/go-toml v1.9.5
 )
 

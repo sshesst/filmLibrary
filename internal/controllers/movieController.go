@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	database "filmLibrary"
 	"filmLibrary/internal/middleware"
 	"filmLibrary/internal/models"
@@ -42,6 +43,22 @@ func addMovieToDB(movie models.Movie) error {
 		return err
 	}
 	defer pool.Close()
+
+	// Проверяем, существует ли фильм с таким же названием и датой выпуска
+	var count int
+	err = pool.QueryRow(context.Background(), `
+        SELECT COUNT(*)
+        FROM movies
+        WHERE title = $1 AND release_date = $2`,
+		movie.Title, movie.ReleaseDate).Scan(&count)
+	if err != nil {
+		return err
+	}
+
+	// Если фильм уже существует, возвращаем ошибку
+	if count > 0 {
+		return errors.New("такой фильм уже существует")
+	}
 
 	// 1. Вставляем фильм в таблицу movies
 	_, err = pool.Exec(context.Background(), `
