@@ -62,8 +62,8 @@ func GetMovies(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		movie.ReleaseDate = releaseDate.Format("2006-01-02")                                                                // Преобразуем время в строку
-		movie.Actors = []models.Actor{{ID: actorID, Name: name, Gender: gender, Birthdate: birthdate.Format("2006-01-02")}} // Добавляем только одного актера с его ID
+		movie.ReleaseDate = releaseDate.Format("2006-01-02")
+		movie.Actors = []models.Actor{{ID: actorID, Name: name, Gender: gender, Birthdate: birthdate.Format("2006-01-02")}}
 		movies = append(movies, movie)
 	}
 	if err := rows.Err(); err != nil {

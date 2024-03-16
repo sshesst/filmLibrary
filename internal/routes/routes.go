@@ -45,6 +45,8 @@ func SetupRoutes() {
 
 	r.HandleFunc("/movies", controllers.GetMovies).Methods("GET")
 
+	r.HandleFunc("/search-movies", controllers.SearchMovies).Methods("GET")
+
 	// Используем маршрутизатор в качестве основного маршрута для HTTP сервера
 	http.Handle("/", r)
 }
