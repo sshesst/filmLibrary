@@ -10,8 +10,8 @@ import (
 	"time"
 )
 
-// SearchMovies выполняет поиск фильмов по фрагменту названия
-func SearchMoviesByName(w http.ResponseWriter, r *http.Request) {
+// SearchMoviesByActor выполняет поиск фильмов по фрагменту имени актёра
+func SearchMoviesByActor(w http.ResponseWriter, r *http.Request) {
 	// Получаем параметр запроса для поиска
 	query := r.URL.Query().Get("query")
 
@@ -21,8 +21,8 @@ func SearchMoviesByName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Выполняем запрос к базе данных для поиска фильмов
-	movies, err := searchMoviesFromDB(query)
+	// Выполняем запрос к базе данных для поиска фильмов по имени актёра
+	movies, err := searchMoviesByActorFromDB(query)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -33,19 +33,21 @@ func SearchMoviesByName(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(movies)
 }
 
-// searchMoviesFromDB выполняет поиск фильмов в базе данных по фрагменту названия
-func searchMoviesFromDB(query string) ([]models.Movie, error) {
+// searchMoviesByActorFromDB выполняет поиск фильмов в базе данных по фрагменту имени актёра
+func searchMoviesByActorFromDB(query string) ([]models.Movie, error) {
 	pool, err := database.GetPool()
 	if err != nil {
 		return nil, err
 	}
 	defer pool.Close()
 
-	// Выполняем запрос к базе данных для поиска фильмов по фрагменту названия
+	// Выполняем запрос к базе данных для поиска фильмов по фрагменту имени актёра
 	rows, err := pool.Query(context.Background(), `
-		SELECT id, title, description, release_date, rating
-		FROM movies
-		WHERE LOWER(title) LIKE LOWER($1)
+		SELECT m.id, m.title, m.description, m.release_date, m.rating
+		FROM movies m
+		JOIN movie_actors ma ON m.id = ma.movie_id
+		JOIN actors a ON ma.actor_id = a.id
+		WHERE LOWER(a.name) LIKE LOWER($1)
 	`, "%"+strings.ToLower(query)+"%")
 	if err != nil {
 		return nil, err

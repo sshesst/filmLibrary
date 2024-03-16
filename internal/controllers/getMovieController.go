@@ -51,7 +51,6 @@ func GetMovies(w http.ResponseWriter, r *http.Request) {
 	var movies []models.Movie
 	for rows.Next() {
 		var movie models.Movie
-		//var Actor models.Actor
 		var releaseDate time.Time
 		var actorID uint
 		var name string
