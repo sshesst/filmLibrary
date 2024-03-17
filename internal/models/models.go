@@ -25,6 +25,6 @@ type User struct {
 	ID       uint   `json:"id"`
 	Username string `json:"username"`
 	Password string `json:"password"`
-	IsAdmin  bool   `json:"isadmin"`
+	IsAdmin  bool   `json:"isAdmin"`
 	IsAuth   bool   `json:"isAuth"`
 }
