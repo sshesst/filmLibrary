@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-// Вспомогательная функция для получения пула соединений с базой данных
 func GetPool() (*pgxpool.Pool, error) {
 	configPath := "config"
 	pool, err := NewDBPool(configPath)
@@ -56,7 +55,7 @@ func CreateTables(pool *pgxpool.Pool) error {
 		CREATE TABLE IF NOT EXISTS movies (
 			id SERIAL PRIMARY KEY,
 			title VARCHAR(150) NOT NULL,
-			description TEXT,
+			description TEXT CHECK (LENGTH(description) <= 1000),
 			release_date DATE NOT NULL,
 			rating FLOAT CHECK (rating >= 0 AND rating <= 10) NOT NULL
 		)
@@ -70,6 +69,19 @@ func CreateTables(pool *pgxpool.Pool) error {
 			movie_id SERIAL REFERENCES movies(id),
 			actor_id SERIAL REFERENCES actors(id),
 			PRIMARY KEY (movie_id, actor_id)
+		)
+	`)
+	if err != nil {
+		return err
+	}
+
+	_, err = pool.Exec(context.Background(), `
+		CREATE TABLE IF NOT EXISTS users (
+			id SERIAL PRIMARY KEY,
+			username VARCHAR(255) NOT NULL,
+			password VARCHAR(255) NOT NULL,
+			is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+			is_auth BOOLEAN NOT NULL DEFAULT FALSE
 		)
 	`)
 	if err != nil {

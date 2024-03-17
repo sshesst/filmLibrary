@@ -1,6 +1,5 @@
 package models
 
-// Actor модель для таблицы актёров
 type Actor struct {
 	ID        uint   `json:"id"`
 	Name      string `json:"name"`
@@ -8,7 +7,6 @@ type Actor struct {
 	Birthdate string `json:"birthdate"`
 }
 
-// Movie модель для таблицы фильмов
 type Movie struct {
 	ID          uint    `json:"id"`
 	Title       string  `json:"title"`
@@ -18,16 +16,15 @@ type Movie struct {
 	Actors      []Actor `json:"actors"`
 }
 
-// связь Many-to-Many для Movie и Actor
 type MovieActor struct {
 	MovieID uint `json:"movieId" pg:",pk"`
 	ActorID uint `json:"actorId" pg:",pk"`
 }
 
-// User модель для таблицы пользователей
-//type User struct {
-//	ID       uint   `json:"id"`
-//	Username string `json:"username"`
-//	Password string `json:"-"`
-//	Role     string `json:"role"`
-//}
+type User struct {
+	ID       uint   `json:"id"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	IsAdmin  bool   `json:"isadmin"`
+	IsAuth   bool   `json:"isAuth"`
+}

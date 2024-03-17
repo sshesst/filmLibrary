@@ -1,41 +1,16 @@
 package routes
 
-// SetupRoutes настраивает маршруты для вашего приложения
-//func SetupRoutes() {
-//	r := mux.NewRouter()
-//	// Включаем CORS
-//	corsHandler := handlers.CORS(
-//		handlers.AllowedOrigins([]string{"*"}),
-//		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
-//		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-//	)
-//
-//	// Добавление актера
-//	r.HandleFunc("/addActor", controllers.AddActor).Methods("POST")
-//
-//	// Обновление информации об актере
-//	r.HandleFunc("/updateActor", controllers.UpdateActor).Methods("PUT")
-//
-//	// Удаление актера
-//	r.HandleFunc("/deleteActor", controllers.DeleteActor).Methods("DELETE")
-//
-//	// Задаем обработчик CORS для всех маршрутов
-//	http.Handle("/", corsHandler(r))
-//}
-
 import (
 	"filmLibrary/internal/controllers"
+	"filmLibrary/pkg/utils"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
-// SetupRoutes настраивает маршруты для вашего приложения
 func SetupRoutes() {
-	// Создаем новый маршрутизатор
 	r := mux.NewRouter()
 
-	// Задаем обработчики для каждого маршрута
-	r.HandleFunc("/addActor", controllers.AddActor).Methods("POST")
+	r.HandleFunc("/addActor", utils.BasicAuthMiddleware(controllers.AddActor)).Methods("POST")
 	r.HandleFunc("/updateActor", controllers.UpdateActor).Methods("PUT")
 	r.HandleFunc("/deleteActor/{id}", controllers.DeleteActor).Methods("DELETE")
 
@@ -49,6 +24,5 @@ func SetupRoutes() {
 	r.HandleFunc("/search-moviesby", controllers.SearchMoviesByActor).Methods("GET")
 	r.HandleFunc("/all", controllers.GetAllMovies).Methods("GET")
 
-	// Используем маршрутизатор в качестве основного маршрута для HTTP сервера
 	http.Handle("/", r)
 }
