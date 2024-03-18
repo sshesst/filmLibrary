@@ -1,8 +1,8 @@
 package main
 
 import (
-	database "filmLibrary"
 	"filmLibrary/internal/routes"
+	database "filmLibrary/internal/storage"
 	"fmt"
 	"github.com/gorilla/handlers"
 	"log"

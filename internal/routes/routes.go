@@ -2,7 +2,7 @@ package routes
 
 import (
 	"filmLibrary/internal/controllers"
-	"filmLibrary/pkg/utils"
+	"filmLibrary/internal/middleware"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -10,31 +10,17 @@ import (
 func SetupRoutes() {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/addActor", utils.BasicAuthMiddleware(adminOnlyMiddleware(controllers.AddActor))).Methods("POST")
-	r.HandleFunc("/updateActor", utils.BasicAuthMiddleware(controllers.UpdateActor)).Methods("PUT")
-	r.HandleFunc("/deleteActor/{id}", utils.BasicAuthMiddleware(controllers.DeleteActor)).Methods("DELETE")
+	r.HandleFunc("/actor/add-actor", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(controllers.AddActor))).Methods("POST")
+	r.HandleFunc("/actor/update-actor", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(controllers.UpdateActor))).Methods("PUT")
+	r.HandleFunc("/actor/delete-actor/{id}", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(controllers.DeleteActor))).Methods("DELETE")
+	r.HandleFunc("/movie/add-movie", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(controllers.AddMovie))).Methods("POST")
+	r.HandleFunc("/movie/update-movie", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(controllers.UpdateMovie))).Methods("PUT")
+	r.HandleFunc("/movie/delete-movie/{id}", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(controllers.DeleteMovie))).Methods("DELETE")
 
-	r.HandleFunc("/addMovie", utils.BasicAuthMiddleware(controllers.AddMovie)).Methods("POST")
-	r.HandleFunc("/updateMovie", utils.BasicAuthMiddleware(controllers.UpdateMovie)).Methods("PUT")
-	r.HandleFunc("/deleteMovie/{id}", utils.BasicAuthMiddleware(controllers.DeleteMovie)).Methods("DELETE")
-
-	r.HandleFunc("/movies", utils.BasicAuthMiddleware(controllers.GetMovies)).Methods("GET")
-
-	r.HandleFunc("/search-movies", utils.BasicAuthMiddleware(controllers.SearchMoviesByName)).Methods("GET")
-	r.HandleFunc("/search-moviesby", utils.BasicAuthMiddleware(controllers.SearchMoviesByActor)).Methods("GET")
-	r.HandleFunc("/all", utils.BasicAuthMiddleware(controllers.GetAllMovies)).Methods("GET")
+	r.HandleFunc("/sort-movies", middleware.BasicAuthMiddleware(controllers.GetMovies)).Methods("GET")
+	r.HandleFunc("/search-movies-by-title", middleware.BasicAuthMiddleware(controllers.SearchMoviesByName)).Methods("GET")
+	r.HandleFunc("/search-movies-by-actor", middleware.BasicAuthMiddleware(controllers.SearchMoviesByActor)).Methods("GET")
+	r.HandleFunc("/actor-list", middleware.BasicAuthMiddleware(controllers.GetAllMovies)).Methods("GET")
 
 	http.Handle("/", r)
-}
-
-// adminOnlyMiddleware проверяет, является ли пользователь администратором
-func adminOnlyMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		isAdmin, ok := r.Context().Value("UserRole").(bool)
-		if !ok || isAdmin == false {
-			http.Error(w, "Forbidden", http.StatusForbidden)
-			return
-		}
-		next(w, r)
-	}
 }

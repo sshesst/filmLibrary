@@ -1,11 +1,9 @@
 package controllers
 
 import (
-	"bytes"
-	"context"
 	"encoding/json"
-	database "filmLibrary"
 	"filmLibrary/internal/models"
+	"filmLibrary/internal/service"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -20,7 +18,7 @@ func AddActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = addActorToDB(actor)
+	err = service.AddActorToDB(actor)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -37,7 +35,7 @@ func UpdateActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = updateActorInDB(actor)
+	err = service.UpdateActorInDB(actor)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -47,7 +45,6 @@ func UpdateActor(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteActor(w http.ResponseWriter, r *http.Request) {
-	// Извлекаем параметр id из URL
 	vars := mux.Vars(r)
 	id, err := strconv.ParseUint(vars["id"], 10, 64)
 	if err != nil {
@@ -55,98 +52,11 @@ func DeleteActor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Вызываем функцию для удаления актера из базы данных по ID
-	err = deleteActorFromDB(uint(id))
+	err = service.DeleteActorFromDB(uint(id))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	fmt.Fprintf(w, "Информация об актере успешно удалена")
-}
-
-func addActorToDB(actor models.Actor) error {
-	pool, err := database.GetPool()
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-
-	_, err = pool.Exec(context.Background(), `
-		INSERT INTO actors (name, gender, birthdate)
-		VALUES ($1, $2, $3)`,
-		actor.Name, actor.Gender, actor.Birthdate)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func updateActorInDB(actor models.Actor) error {
-	pool, err := database.GetPool()
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-
-	var updateQuery bytes.Buffer
-	updateQuery.WriteString("UPDATE actors SET ")
-
-	var params []interface{}
-	var index int
-
-	if actor.Name != "" {
-		index++
-		updateQuery.WriteString(fmt.Sprintf("name = $%d", index))
-		params = append(params, actor.Name)
-	}
-
-	if actor.Gender != "" {
-		if index > 0 {
-			updateQuery.WriteString(", ")
-		}
-		index++
-		updateQuery.WriteString(fmt.Sprintf("gender = $%d", index))
-		params = append(params, actor.Gender)
-	}
-
-	if actor.Birthdate != "" {
-		if index > 0 {
-			updateQuery.WriteString(", ")
-		}
-		index++
-		updateQuery.WriteString(fmt.Sprintf("birthdate = $%d", index))
-		params = append(params, actor.Birthdate)
-	}
-
-	updateQuery.WriteString(" WHERE id = $")
-	index++
-	updateQuery.WriteString(fmt.Sprintf("%d", index))
-	params = append(params, actor.ID)
-
-	_, err = pool.Exec(context.Background(), updateQuery.String(), params...)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func deleteActorFromDB(actorID uint) error {
-	pool, err := database.GetPool()
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-
-	_, err = pool.Exec(context.Background(), `
-		DELETE FROM actors
-		WHERE id = $1`,
-		actorID)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

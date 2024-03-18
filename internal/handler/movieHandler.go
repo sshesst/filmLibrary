@@ -1,4 +1,4 @@
-package middleware
+package handler
 
 import (
 	"filmLibrary/internal/models"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func ValidateMovie(movie models.Movie) error {
+func MovieHandler(movie models.Movie) error {
 	if len(strings.TrimSpace(movie.Title)) < 1 || len(strings.TrimSpace(movie.Title)) > 150 {
 		return fmt.Errorf("Название фильма должно содержать от 1 до 150 символов")
 	}
