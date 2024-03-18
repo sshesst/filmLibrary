@@ -5,43 +5,40 @@ import (
 	"encoding/json"
 	"filmLibrary/internal/models"
 	database "filmLibrary/internal/storage"
+	"filmLibrary/pkg/logging"
 	"net/http"
 	"strings"
 	"time"
 )
 
-// SearchMoviesByActor выполняет поиск фильмов по фрагменту имени актёра
-func SearchMoviesByActor(w http.ResponseWriter, r *http.Request) {
-	// Получаем параметр запроса для поиска
+func SearchMoviesByActor(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	query := r.URL.Query().Get("query")
 
-	// Если запрос пустой, возвращаем пустой результат
 	if query == "" {
+		logger.Error("Query parameter is required")
 		http.Error(w, "Query parameter is required", http.StatusBadRequest)
 		return
 	}
 
-	// Выполняем запрос к базе данных для поиска фильмов по имени актёра
-	movies, err := searchMoviesByActorFromDB(query)
+	movies, err := searchMoviesByActorFromDB(query, logger)
 	if err != nil {
+		logger.Error("Ошибка поиска фильмов по актеру в БД:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Возвращаем результаты поиска в виде JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(movies)
 }
 
-// searchMoviesByActorFromDB выполняет поиск фильмов в базе данных по фрагменту имени актёра
-func searchMoviesByActorFromDB(query string) ([]models.Movie, error) {
+func searchMoviesByActorFromDB(query string, logger logging.Logger) ([]models.Movie, error) {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return nil, err
 	}
 	defer pool.Close()
 
-	// Выполняем запрос к базе данных для поиска фильмов по фрагменту имени актёра
 	rows, err := pool.Query(context.Background(), `
 		SELECT m.id, m.title, m.description, m.release_date, m.rating
 		FROM movies m
@@ -50,6 +47,7 @@ func searchMoviesByActorFromDB(query string) ([]models.Movie, error) {
 		WHERE LOWER(a.name) LIKE LOWER($1)
 	`, "%"+strings.ToLower(query)+"%")
 	if err != nil {
+		logger.Error("Ошибка выполнения SQL-запроса:", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -60,12 +58,14 @@ func searchMoviesByActorFromDB(query string) ([]models.Movie, error) {
 		var releaseDate time.Time
 		err := rows.Scan(&movie.ID, &movie.Title, &movie.Description, &releaseDate, &movie.Rating)
 		if err != nil {
+			logger.Error("Ошибка сканирования результата:", err)
 			return nil, err
 		}
 		movie.ReleaseDate = releaseDate.Format("2006-01-02")
 		movies = append(movies, movie)
 	}
 	if err := rows.Err(); err != nil {
+		logger.Error("Ошибка перебора результатов:", err)
 		return nil, err
 	}
 

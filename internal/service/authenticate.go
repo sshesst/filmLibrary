@@ -8,7 +8,15 @@ import (
 	database "filmLibrary/internal/storage"
 )
 
+var db *sql.DB
+
+// SetDB устанавливает переданное соединение как активное соединение
+func SetDB(database *sql.DB) {
+	db = database
+}
+
 func Authenticate(username, password string) (models.User, error) {
+
 	pool, err := database.GetPool()
 	if err != nil {
 		return models.User{}, err

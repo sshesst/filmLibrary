@@ -6,12 +6,14 @@ import (
 	"errors"
 	"filmLibrary/internal/models"
 	database "filmLibrary/internal/storage"
+	"filmLibrary/pkg/logging"
 	"fmt"
 )
 
-func AddMovieToDB(movie models.Movie) error {
+func AddMovieToDB(movie models.Movie, logger logging.Logger) error {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return err
 	}
 	defer pool.Close()
@@ -23,10 +25,12 @@ func AddMovieToDB(movie models.Movie) error {
         WHERE title = $1 AND release_date = $2`,
 		movie.Title, movie.ReleaseDate).Scan(&count)
 	if err != nil {
+		logger.Error("Ошибка подготовки SQL-запроса в добавлении фильма в бд при получении всех фильмов", err)
 		return err
 	}
 
 	if count > 0 {
+		logger.Error("такой фильм уже существует")
 		return errors.New("такой фильм уже существует")
 	}
 
@@ -35,6 +39,7 @@ func AddMovieToDB(movie models.Movie) error {
         VALUES ($1, $2, $3, $4)`,
 		movie.Title, movie.Description, movie.ReleaseDate, movie.Rating)
 	if err != nil {
+		logger.Error("Ошибка подготовки SQL-запроса в добавлении фильма в бд", err)
 		return err
 	}
 
@@ -43,6 +48,7 @@ func AddMovieToDB(movie models.Movie) error {
         SELECT id FROM movies WHERE title = $1 AND release_date = $2`,
 		movie.Title, movie.ReleaseDate).Scan(&movieID)
 	if err != nil {
+		logger.Error("Ошибка получения id из таблицы movies", err)
 		return err
 	}
 
@@ -52,16 +58,18 @@ func AddMovieToDB(movie models.Movie) error {
             VALUES ($1, $2)`,
 			movieID, actor.ID)
 		if err != nil {
+			logger.Error("Ошибка вставки в таблицу movies_actors", err)
 			return err
 		}
 	}
-
+	logger.Info("Фильм успешно добавлен в БД")
 	return nil
 }
 
-func UpdateMovieInDB(movie models.Movie) error {
+func UpdateMovieInDB(movie models.Movie, logger logging.Logger) error {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return err
 	}
 	defer pool.Close()
@@ -112,6 +120,7 @@ func UpdateMovieInDB(movie models.Movie) error {
 
 	_, err = pool.Exec(context.Background(), updateQuery.String(), params...)
 	if err != nil {
+		logger.Error("Ошибка выполнения запроса обновления фильма в бд", err)
 		return err
 	}
 
@@ -120,6 +129,7 @@ func UpdateMovieInDB(movie models.Movie) error {
         WHERE movie_id = $1`,
 		movie.ID)
 	if err != nil {
+		logger.Error("Ошибка удаления связей фильма с актерами", err)
 		return err
 	}
 
@@ -129,16 +139,19 @@ func UpdateMovieInDB(movie models.Movie) error {
             VALUES ($1, $2)`,
 			movie.ID, actor.ID)
 		if err != nil {
+			logger.Error("Ошибка вставки связей фильма с актерами", err)
 			return err
 		}
 	}
 
+	logger.Info("Фильм успешно обновлен в БД")
 	return nil
 }
 
-func DeleteMovieFromDB(movieID uint) error {
+func DeleteMovieFromDB(movieID uint, logger logging.Logger) error {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return err
 	}
 	defer pool.Close()
@@ -148,6 +161,7 @@ func DeleteMovieFromDB(movieID uint) error {
         WHERE movie_id = $1`,
 		movieID)
 	if err != nil {
+		logger.Error("Ошибка удаления связей фильма с актерами", err)
 		return err
 	}
 
@@ -156,8 +170,10 @@ func DeleteMovieFromDB(movieID uint) error {
         WHERE id = $1`,
 		movieID)
 	if err != nil {
+		logger.Error("Ошибка удаления фильма из БД", err)
 		return err
 	}
 
+	logger.Info("Фильм успешно удален из БД")
 	return nil
 }

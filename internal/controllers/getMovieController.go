@@ -5,49 +5,45 @@ import (
 	"encoding/json"
 	"filmLibrary/internal/models"
 	database "filmLibrary/internal/storage"
+	"filmLibrary/pkg/logging"
 	"net/http"
 	"time"
 )
 
-func GetMovies(w http.ResponseWriter, r *http.Request) {
-	// Получаем параметры запроса для сортировки
+func GetMovies(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	sortBy := r.URL.Query().Get("sort_by")
 	order := r.URL.Query().Get("order")
 
-	// Проверяем, является ли параметр sort_by пустым, и если да, используем сортировку по рейтингу
 	if sortBy == "" {
 		sortBy = "rating"
 	}
 
-	// Проверяем, является ли параметр order пустым, и если да, используем сортировку по убыванию
 	if order == "" {
 		order = "desc"
 	}
 
-	// Формируем SQL-запрос
 	sqlQuery := "SELECT m.id, m.title, m.description, m.release_date, m.rating, ma.actor_id, a.name, a.gender, a.birthdate " +
 		"FROM movies m " +
 		"JOIN movie_actors ma ON m.id = ma.movie_id " +
 		"JOIN actors a ON ma.actor_id = a.id " +
 		"ORDER BY " + sortBy + " " + order
 
-	// Получаем пул соединений с базой данных
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer pool.Close()
 
-	// Выполняем SQL-запрос
 	rows, err := pool.Query(context.Background(), sqlQuery)
 	if err != nil {
+		logger.Error("Ошибка выполнения SQL-запроса:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer rows.Close()
 
-	// Обрабатываем результаты запроса
 	var movies []models.Movie
 	for rows.Next() {
 		var movie models.Movie
@@ -58,6 +54,7 @@ func GetMovies(w http.ResponseWriter, r *http.Request) {
 		var birthdate time.Time
 		err := rows.Scan(&movie.ID, &movie.Title, &movie.Description, &releaseDate, &movie.Rating, &actorID, &name, &gender, &birthdate)
 		if err != nil {
+			logger.Error("Ошибка сканирования результата:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -66,11 +63,11 @@ func GetMovies(w http.ResponseWriter, r *http.Request) {
 		movies = append(movies, movie)
 	}
 	if err := rows.Err(); err != nil {
+		logger.Error("Ошибка перебора результатов:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	// Отправляем список фильмов в виде JSON
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(movies)
 }

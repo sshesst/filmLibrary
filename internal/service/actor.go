@@ -5,12 +5,14 @@ import (
 	"context"
 	"filmLibrary/internal/models"
 	database "filmLibrary/internal/storage"
+	"filmLibrary/pkg/logging"
 	"fmt"
 )
 
-func AddActorToDB(actor models.Actor) error {
+func AddActorToDB(actor models.Actor, logger logging.Logger) error {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return err
 	}
 	defer pool.Close()
@@ -20,15 +22,18 @@ func AddActorToDB(actor models.Actor) error {
 		VALUES ($1, $2, $3)`,
 		actor.Name, actor.Gender, actor.Birthdate)
 	if err != nil {
+		logger.Error("Ошибка подготовки SQL-запроса в добавлении актёра в бд", err)
 		return err
 	}
+	logger.Info("Актер успешно добавлен в БД")
 
 	return nil
 }
 
-func UpdateActorInDB(actor models.Actor) error {
+func UpdateActorInDB(actor models.Actor, logger logging.Logger) error {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return err
 	}
 	defer pool.Close()
@@ -70,26 +75,39 @@ func UpdateActorInDB(actor models.Actor) error {
 
 	_, err = pool.Exec(context.Background(), updateQuery.String(), params...)
 	if err != nil {
+		logger.Error("Ошибка подготовки SQL-запроса:", err)
 		return err
 	}
+
+	logger.Info("Актер успешно обновлен в БД")
 
 	return nil
 }
 
-func DeleteActorFromDB(actorID uint) error {
+func DeleteActorFromDB(actorID uint, logger logging.Logger) error {
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		return err
 	}
 	defer pool.Close()
 
 	_, err = pool.Exec(context.Background(), `
-		DELETE FROM actors
-		WHERE id = $1`,
-		actorID)
+    DELETE FROM movie_actors
+    WHERE actor_id = $1`, actorID)
 	if err != nil {
+		logger.Error("Ошибка удаления записей из movie_actors:", err)
 		return err
 	}
 
+	_, err = pool.Exec(context.Background(), `
+    DELETE FROM actors
+    WHERE id = $1`, actorID)
+	if err != nil {
+		logger.Error("Ошибка удаления актера из БД:", err)
+		return err
+	}
+
+	logger.Info("Актер успешно удален из БД")
 	return nil
 }

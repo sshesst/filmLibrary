@@ -1,90 +1,116 @@
 package test
 
-//
 //import (
-//	"errors"
+//	"context"
 //	"filmLibrary/internal/models"
 //	"filmLibrary/internal/service"
-//	"filmLibrary/internal/storage"
+//	"os"
 //	"testing"
-//
-//	"github.com/DATA-DOG/go-sqlmock"
+//	"time"
 //)
 //
-//func TestAddMovieToDB(t *testing.T) {
-//	db, mock, err := sqlmock.New()
-//	if err != nil {
-//		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-//	}
-//	defer db.Close()
+//// MockLogger представляет фиктивный логгер для использования в тестах.
+//type MockLogger struct{}
 //
-//	mockDB := storage.NewMockDB()
+//func (m MockLogger) Error(msg string, err error) {}
+//func (m MockLogger) Info(msg string)             {}
 //
-//	movie := models.Movie{
-//		Title:       "Test Movie",
-//		Description: "Test Description",
-//		ReleaseDate: "2024-03-18",
-//		Rating:      5,
-//		Actors:      []models.Actor{{ID: 1}, {ID: 2}},
+//// TestAddActorToDB проверяет функцию AddActorToDB.
+//func TestAddActorToDB(t *testing.T) {
+//	// Подготовка тестовых данных
+//	actor := models.Actor{
+//		Name:      "Test Actor",
+//		Gender:    "Male",
+//		Birthdate: "1990-01-01",
 //	}
 //
-//	mock.ExpectQuery("SELECT COUNT(.+)").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(0))
-//	mock.ExpectExec("INSERT INTO movies").WillReturnResult(sqlmock.NewResult(1, 1))
-//	mock.ExpectQuery("SELECT id FROM movies").WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
-//	mock.ExpectExec("INSERT INTO movie_actors").WillReturnResult(sqlmock.NewResult(1, 1))
+//	// Создание фиктивного логгера
+//	logger := MockLogger{}
 //
-//	err = service.AddMovieToDB(movie, mockDB)
+//	// Выполнение функции с фиктивным логгером
+//	err := service.AddActorToDB(actor, logger)
+//
+//	// Проверка результата
 //	if err != nil {
-//		t.Errorf("unexpected error: %s", err)
+//		t.Errorf("Ошибка: %v", err)
 //	}
 //}
 //
-//func TestAddMovieToDB_Duplicate(t *testing.T) {
-//	db, mock, err := sqlmock.New()
+//func TestUpdateActorInDB(t *testing.T) {
+//	actor := models.Actor{
+//		ID:        1,
+//		Name:      "Updated Actor",
+//		Gender:    "Female",
+//		Birthdate: "1995-01-01",
+//	}
+//
+//	// Передача nil вместо логгера
+//	err := service.UpdateActorInDB(actor, nil)
+//
+//	// Проверка результата
 //	if err != nil {
-//		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-//	}
-//	defer db.Close()
-//
-//	mockDB := storage.NewMockDB()
-//
-//	movie := models.Movie{
-//		Title:       "Test Movie",
-//		Description: "Test Description",
-//		ReleaseDate: "2024-03-18",
-//		Rating:      5,
-//		Actors:      []models.Actor{{ID: 1}, {ID: 2}},
-//	}
-//
-//	mock.ExpectQuery("SELECT COUNT(.+)").WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-//
-//	err = service.AddMovieToDB(movie, mockDB)
-//	if err == nil || err.Error() != "такой фильм уже существует" {
-//		t.Errorf("expected error: такой фильм уже существует, got: %s", err)
+//		t.Errorf("Ошибка: %v", err)
 //	}
 //}
 //
-//func TestAddMovieToDB_DBError(t *testing.T) {
-//	db, mock, err := sqlmock.New()
+//// TestDeleteActorFromDB проверяет функцию DeleteActorFromDB.
+//func TestDeleteActorFromDB(t *testing.T) {
+//	actorID := uint(1)
+//
+//	// Передача nil вместо логгера
+//	err := service.DeleteActorFromDB(actorID, nil)
+//
 //	if err != nil {
-//		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+//		t.Errorf("Ошибка: %v", err)
 //	}
-//	defer db.Close()
+//}
 //
-//	mockDB := storage.NewMockDB()
+//func TestAddActorToDBWithDB(t *testing.T) {
+//	database := FakeDatabase{}
+//	database.Init()
+//	defer database.Cleanup()
 //
-//	movie := models.Movie{
-//		Title:       "Test Movie",
-//		Description: "Test Description",
-//		ReleaseDate: "2024-03-18",
-//		Rating:      5,
-//		Actors:      []models.Actor{{ID: 1}, {ID: 2}},
+//	actor := models.Actor{
+//		Name:      "Test Actor",
+//		Gender:    "Male",
+//		Birthdate: "1990-01-01",
 //	}
 //
-//	mock.ExpectQuery("SELECT COUNT(.+)").WillReturnError(errors.New("database error"))
+//	// Передача nil вместо логгера
+//	err := service.AddActorToDB(actor, nil)
 //
-//	err = service.AddMovieToDB(movie, mockDB)
-//	if err == nil || err.Error() != "database error" {
-//		t.Errorf("expected error: database error, got: %s", err)
+//	if err != nil {
+//		t.Errorf("Ошибка: %v", err)
 //	}
+//}
+//
+//type FakeDatabase struct{}
+//
+//func (f *FakeDatabase) Init() {
+//	// Здесь вы можете добавить логику для заполнения фиктивной базы данных
+//}
+//
+//func (f *FakeDatabase) Cleanup() {
+//	// Здесь вы можете добавить логику для очистки фиктивной базы данных
+//}
+//
+//func (f *FakeDatabase) Exec(ctx context.Context, query string, args ...interface{}) (int, error) {
+//	// Здесь вы можете добавить логику для фиктивного выполнения запросов к базе данных
+//	return 0, nil
+//}
+//
+//func (f *FakeDatabase) Close() error {
+//	// Здесь вы можете добавить логику для фиктивного закрытия соединения с базой данных
+//	return nil
+//}
+//
+//func TestMain(m *testing.M) {
+//	_, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+//	defer cancel()
+//
+//	exitVal := m.Run()
+//
+//	cancel()
+//
+//	os.Exit(exitVal)
 //}

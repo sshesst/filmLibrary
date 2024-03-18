@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"filmLibrary/internal/models"
 	database "filmLibrary/internal/storage"
+	"filmLibrary/pkg/logging"
 	"net/http"
 	"time"
 )
@@ -22,7 +23,7 @@ type ActorWithMovies struct {
 	Movies []MovieWithoutActors `json:"movies"`
 }
 
-func GetAllMovies(w http.ResponseWriter, r *http.Request) {
+func GetAllActorMovies(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	sqlQuery := `
         SELECT a.id, a.name, a.gender, a.birthdate, m.id, m.title, m.description, m.release_date, m.rating
         FROM actors a 
@@ -32,6 +33,7 @@ func GetAllMovies(w http.ResponseWriter, r *http.Request) {
 
 	pool, err := database.GetPool()
 	if err != nil {
+		logger.Error("Ошибка получения пула соединений:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -39,6 +41,7 @@ func GetAllMovies(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := pool.Query(context.Background(), sqlQuery)
 	if err != nil {
+		logger.Error("Ошибка выполнения SQL-запроса:", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -56,6 +59,7 @@ func GetAllMovies(w http.ResponseWriter, r *http.Request) {
 
 		err := rows.Scan(&actorID, &actorName, &actorGender, &actorBirthdate, &movieID, &movieTitle, &movieDescription, &movieReleaseDate, &movieRating)
 		if err != nil {
+			logger.Error("Ошибка сканирования результата:", err)
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -93,6 +97,7 @@ func GetAllMovies(w http.ResponseWriter, r *http.Request) {
 
 	var actorsWithMovies []ActorWithMovies
 	for _, actor := range actorsMap {
+		logger.Error("Ошибка перебора результатов:", err)
 		actorsWithMovies = append(actorsWithMovies, *actor)
 	}
 
