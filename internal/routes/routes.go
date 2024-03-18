@@ -1,15 +1,15 @@
 package routes
 
 import (
+	_ "filmLibrary/docs"
 	"filmLibrary/internal/controllers"
 	"filmLibrary/internal/middleware"
 	"filmLibrary/pkg/logging"
-	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
 func SetupRoutes(logger logging.Logger) {
-	r := mux.NewRouter()
 
 	wrappedAddActor := func(w http.ResponseWriter, r *http.Request) {
 		controllers.AddActor(w, r, logger)
@@ -51,18 +51,17 @@ func SetupRoutes(logger logging.Logger) {
 		controllers.GetAllActorMovies(w, r, logger)
 	}
 
-	r.HandleFunc("/actor/add-actor", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedAddActor))).Methods("POST")
-	r.HandleFunc("/actor/update-actor", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedUpdateActor))).Methods("PUT")
-	r.HandleFunc("/actor/delete-actor/{id}", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedDeleteActor))).Methods("DELETE")
+	http.HandleFunc("/actor/add-actor", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedAddActor)))
+	http.HandleFunc("/actor/update-actor", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedUpdateActor)))
+	http.HandleFunc("/actor/delete-actor/{id}", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedDeleteActor)))
 
-	r.HandleFunc("/movie/add-movie", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedAddMovie))).Methods("POST")
-	r.HandleFunc("/movie/update-movie", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedUpdateMovie))).Methods("PUT")
-	r.HandleFunc("/movie/delete-movie/{id}", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedDeleteMovie))).Methods("DELETE")
+	http.HandleFunc("/movie/add-movie", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedAddMovie)))
+	http.HandleFunc("/movie/update-movie", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedUpdateMovie)))
+	http.HandleFunc("/movie/delete-movie/{id}", middleware.BasicAuthMiddleware(middleware.AdminOnlyMiddleware(wrappedDeleteMovie)))
+	http.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+	http.HandleFunc("/sort-movies", middleware.BasicAuthMiddleware(wrappedGetMovies))
+	http.HandleFunc("/search-movies-by-title", middleware.BasicAuthMiddleware(wrappedSearchMoviesByName))
+	http.HandleFunc("/search-movies-by-actor", middleware.BasicAuthMiddleware(wrappedSearchMoviesByActor))
+	http.HandleFunc("/actor-list", middleware.BasicAuthMiddleware(wrappedGetAllMovies))
 
-	r.HandleFunc("/sort-movies", middleware.BasicAuthMiddleware(wrappedGetMovies)).Methods("GET")
-	r.HandleFunc("/search-movies-by-title", middleware.BasicAuthMiddleware(wrappedSearchMoviesByName)).Methods("GET")
-	r.HandleFunc("/search-movies-by-actor", middleware.BasicAuthMiddleware(wrappedSearchMoviesByActor)).Methods("GET")
-	r.HandleFunc("/actor-list", middleware.BasicAuthMiddleware(wrappedGetAllMovies)).Methods("GET")
-
-	http.Handle("/", r)
 }

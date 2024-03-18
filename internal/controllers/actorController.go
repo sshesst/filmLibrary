@@ -11,6 +11,15 @@ import (
 	"strconv"
 )
 
+// @Summary Удалить актера
+// @Description Удаляет актера из базы данных по его ID
+// @Tags actors
+// @Param id path string true "ID актера"
+// @Success 200 {string} string "Информация об актере успешно удалена"
+// @Failure 400 {string} string "Ошибка декодирования JSON"
+// @Failure 500 {string} string "Ошибка удаления актера в БД"
+// @Router /actor/delete-actor/{id} [delete]
+
 func AddActor(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	var actor models.Actor
 	err := json.NewDecoder(r.Body).Decode(&actor)
@@ -30,6 +39,18 @@ func AddActor(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	fmt.Fprintf(w, "Актер успешно добавлен")
 }
 
+// UpdateActor обновляет информацию об актере в базе данных.
+// @Summary Обновить актера
+// @Description Обновляет информацию об актере в базе данных
+// @Tags actors
+// @Accept json
+// @Produce json
+// @Param actor body Actor true "Данные актера"
+// @Success 200 {string} string "Информация об актере успешно обновлена"
+// @Failure 400 {string} string "Ошибка декодирования JSON"
+// @Failure 500 {string} string "Ошибка обновления актера в БД"
+// @Router /actor/update-actor [post]
+
 func UpdateActor(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	var actor models.Actor
 	err := json.NewDecoder(r.Body).Decode(&actor)
@@ -48,6 +69,16 @@ func UpdateActor(w http.ResponseWriter, r *http.Request, logger logging.Logger) 
 	logger.Info("Информация об актере успешно обновлена")
 	fmt.Fprintf(w, "Информация об актере успешно обновлена")
 }
+
+// DeleteActor удаляет актера из базы данных по его ID.
+// @Summary Удалить актера
+// @Description Удаляет актера из базы данных по его ID
+// @Tags actors
+// @Param id path string true "ID актера"
+// @Success 200 {string} string "Информация об актере успешно удалена"
+// @Failure 400 {string} string "Ошибка декодирования JSON"
+// @Failure 500 {string} string "Ошибка удаления актера в БД"
+// @Router /actor/delete-actor/{id} [delete]
 
 func DeleteActor(w http.ResponseWriter, r *http.Request, logger logging.Logger) {
 	vars := mux.Vars(r)

@@ -1,49 +1,18 @@
-//package main
-//
-//import (
-//	"filmLibrary/internal/routes"
-//	database "filmLibrary/internal/storage"
-//	"fmt"
-//	"github.com/gorilla/handlers"
-//	"log"
-//	"net/http"
-//)
-//
-//func main() {
-//	configPath := "config"
-//	pool, err := database.NewDBPool(configPath)
-//	if err != nil {
-//		log.Fatal("Error creating DB pool:", err)
-//	}
-//	defer pool.Close()
-//
-//	err = database.CreateTables(pool)
-//	if err != nil {
-//		log.Fatal("Error creating tables:", err)
-//	}
-//
-//	fmt.Println("Success!")
-//
-//	routes.SetupRoutes()
-//
-//	port := ":8080"
-//	fmt.Printf("Server is running on port %s\n", port)
-//	http.ListenAndServe(port, handlers.CORS(
-//		handlers.AllowedOrigins([]string{"*"}),
-//		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-//		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
-//	)(http.DefaultServeMux))
-//}
-
 package main
 
 import (
 	"filmLibrary/internal/routes"
 	database "filmLibrary/internal/storage"
 	"filmLibrary/pkg/logging"
-	"github.com/gorilla/handlers"
 	"net/http"
 )
+
+// @title Todo App API
+// @version 1.0
+// @description API Server for TodoList Application
+
+// @host localhost:8000
+// @BasePath /
 
 func main() {
 	configPath := "config"
@@ -69,9 +38,5 @@ func main() {
 
 	port := ":8080"
 	logger.Info("Server is running on port", port)
-	http.ListenAndServe(port, handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
-		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
-	)(http.DefaultServeMux))
+	http.ListenAndServe(port, nil)
 }

@@ -3,6 +3,7 @@ package test
 import (
 	"filmLibrary/internal/handler"
 	"filmLibrary/internal/models"
+	"filmLibrary/pkg/logging"
 	"fmt"
 	"reflect"
 	"strings"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestMovieHandler(t *testing.T) {
+	logger := logging.NewLogger()
 	tests := []struct {
 		name     string
 		movie    models.Movie
@@ -55,7 +57,7 @@ func TestMovieHandler(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			result := handler.MovieHandler(tc.movie)
+			result := handler.MovieHandler(tc.movie, *logger)
 			if !reflect.DeepEqual(result, tc.expected) {
 				t.Errorf("Expected error: %v, got: %v", tc.expected, result)
 			}
